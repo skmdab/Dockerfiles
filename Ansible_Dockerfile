@@ -2,7 +2,7 @@ FROM alpine
 
 ARG SECRET
 
-RUN apk update && apk add openssh python3 sudo openrc ansible
+RUN apk update && apk add openssh python3 ansible
 
 RUN adduser ansible -D \
     && echo 'ansible:${SECRET}' | chpasswd \

@@ -1,17 +1,9 @@
-FROM jenkins/jenkins:2.387.1
+FROM alpine
 
-RUN apt-get update && apt-get install -y lsb-release
+RUN apk update && apk add openjdk11 \
+    && apk add --no-cache wget ttf-dejavu \
+    && wget https://get.jenkins.io/war-stable/latest/jenkins.war -O /jenkins.war
 
-RUN curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
-  https://download.docker.com/linux/debian/gpg
+EXPOSE 8080
 
-RUN echo "deb [arch=$(dpkg --print-architecture) \
-    signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
-    https://download.docker.com/linux/debian \
-    $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
-
-RUN apt-get update -y && apt-get install docker-ce-cli -y
-
-USER jenkins
-
-RUN jenkins-plugin-cli --plugins "blueocean docker-workflow"
+CMD ["java", "-jar", "/jenkins.war"]

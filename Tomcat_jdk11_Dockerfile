@@ -1,0 +1,18 @@
+FROM alpine
+
+RUN apk update && apk add openjdk11 wget
+
+WORKDIR /opt
+
+RUN wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.10/bin/apache-tomcat-10.1.10.zip \
+    && unzip apache-tomcat-10.1.10.zip && rm -rf apache-tomcat-10.1.10.zip \
+    && mv apache-tomcat-10.1.10 tomcat10 \
+    && chmod u+x tomcat10/bin/*.sh
+
+RUN sed -i 's/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"-->/' tomcat10/webapps/manager/META-INF/context.xml \
+    && sed -i 's/^.*allow="127\\\.\\d+\\\.\\d+\\\.\\d+|::1|0:0:0:0:0:0:0:1".*$/<!-- & -->/' tomcat10/webapps/manager/META-INF/context.xml \
+    && sed -i 's/<\/tomcat-users>/<!-- <\/tomcat-users> -->/g' tomcat10/conf/tomcat-users.xml \
+    && echo '<user username="filinta" password="redhat" roles="admin-gui,manager-gui,manager-script"/>' >> tomcat10/conf/tomcat-users.xml \
+    && echo "</tomcat-users>" >> tomcat10/conf/tomcat-users.xml
+
+CMD ["/opt/tomcat10/bin/catalina.sh", "run"]

@@ -1,0 +1,18 @@
+FROM alpine
+
+RUN apk update && apk add openjdk8 wget
+
+WORKDIR /opt
+
+RUN wget https://dlcdn.apache.org/tomcat/tomcat-8/v8.5.91/bin/apache-tomcat-8.5.91.zip \
+    && unzip apache-tomcat-8.5.91.zip && rm -rf apache-tomcat-8.5.91.zip \
+    && mv apache-tomcat-8.5.91 tomcat8 \
+    && chmod u+x tomcat8/bin/*.sh
+
+RUN sed -i 's/<Valve className="org.apache.catalina.valves.RemoteAddrValve"/<!-- <Valve className="org.apache.catalina.valves.RemoteAddrValve"-->/' tomcat8/webapps/manager/META-INF/context.xml \
+    && sed -i 's/^.*allow="127\\\.\\d+\\\.\\d+\\\.\\d+|::1|0:0:0:0:0:0:0:1".*$/<!-- & -->/' tomcat8/webapps/manager/META-INF/context.xml \
+    && sed -i 's/<\/tomcat-users>/<!-- <\/tomcat-users> -->/g' tomcat8/conf/tomcat-users.xml \
+    && echo '<user username="filinta" password="redhat" roles="admin-gui,manager-gui,manager-script"/>' >> tomcat8/conf/tomcat-users.xml \
+    && echo "</tomcat-users>" >> tomcat8/conf/tomcat-users.xml
+
+CMD ["/opt/tomcat8/bin/catalina.sh", "run"]
